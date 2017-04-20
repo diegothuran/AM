@@ -1,13 +1,15 @@
 import os, csv
 import numpy as np
 
-
+'''
+    Método para leitura do arquivo da base de dados
+'''
 def readBase(path=str):
     database_shape = []
     database_rgb = []
     labels = []
     with open(path, 'rb') as csvfile:
-        #spamreader = csv.reader(csvfile, delimiter=' ', quotechar='|')
+
         for row in csvfile.readlines():
             row = str(row)
             row = row.replace("\\n'","")
