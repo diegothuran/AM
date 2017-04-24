@@ -2,6 +2,7 @@ from __future__ import division
 
 import numpy as np
 import math
+import sys
 
 from Util import readBase
 
@@ -40,7 +41,7 @@ def p(xk, wi, view, offset):
 	d = len(view[0])
 	val = ( (2*math.pi)**(-d/2) * 
 		np.prod(np.array([(1+covariances[j]) for j in range(0,d)]))**(-1/2) *
-		math.exp((-1/2)*sum([(xk[j+offset] - means[j])**2/(1+covariances[j]) for j in range(0,d)]))
+		math.exp((-1/2)*sum([(xk[j+offset] - means[j])**2/((sys.float_info.min)+covariances[j]) for j in range(0,d)]))
 	)
 	return val
 

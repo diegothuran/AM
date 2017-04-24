@@ -4,7 +4,7 @@ import bayesian_classifier
 import Util
 
 with open('segmentation.data', 'rb') as csvfile:
-    hits = 0
+    hits = {}
     total = 210
     i = 1
     for row in csvfile.readlines():
@@ -17,11 +17,17 @@ with open('segmentation.data', 'rb') as csvfile:
 
         result, score = bayesian_classifier.test(xk,'rgb')
         if result == target:
-            #print("HIT! "+target)
-            hits += 1
+            if target in hits:
+                hits[target] += 1
+            else:
+                hits[target] = 1
 
         step = i/total*100
         print("{0:.2f}% completed...".format(step))
         i += 1
 
-    print("Hitrate: {0:.2f}".format(hits/total))
+    print('{')
+    for key in hits.keys():
+        print(key+":"+"{0:.2f}".format(hits[key]/30)+",")
+    print('}')
+    print(sum(hits.values())/total)
