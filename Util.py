@@ -17,7 +17,7 @@ def readBase(path=str):
             row = row.replace("'", "")
             row = row.split(",")
             labels.append(row[0])
-            database_shape.append(row[1:9])
+            database_shape.append(row[1:10])
             database_rgb.append(row[10:])
 
     return np.array(database_shape).astype(np.float), np.array(database_rgb).astype(np.float), np.array(labels)
