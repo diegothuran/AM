@@ -1,5 +1,7 @@
 import math
 import operator
+import random
+import numpy as np
 from Util import readBase
 
 def normalize(raw_set):
@@ -45,6 +47,7 @@ def knn(test_set, test_labels, train_set, train_labels, k):
     predictions = []
     # train_set = normalize(train_set)
     # test_set = normalize(test_set)
+    print("====== starting... ======")
     for i in range(len(test_set)):
         neighbors = getNeighbors(test_set[i], train_set, train_labels, k)
         result = getVotes(neighbors)
@@ -52,16 +55,41 @@ def knn(test_set, test_labels, train_set, train_labels, k):
         # print("instance " + repr(i) + ":")
         # print("neighbors = " + repr(neighbors))
         # print('predicted = ' + repr(result) + ', actual = ' + repr(test_labels[i]))
-        # print("====== end =====")
     accuracy = getAccuracy(test_labels, predictions)
     print("accuracy: " + repr(accuracy) + "%")
+    print("====== end ======")
     return predictions
 
+def getValidationSet(train_set, train_labels):
+    validation_set = []
+    validation_labels_set = []
+    indexes_to_remove = []
+    train_length = len(train_set)
+    validation_length = int(0.3 * train_length)
+    for i in range(validation_length):
+        index = random.randint(0, train_length - 1)
+        while index in indexes_to_remove:
+            index = random.randint(0, train_length - 1)
+        validation_set.append(train_set[index])
+        validation_labels_set.append(train_labels[index])
+        indexes_to_remove.append(index)
+    train_set = np.delete(train_set, indexes_to_remove, axis=0)
+    train_labels = np.delete(train_labels, indexes_to_remove, axis=0)
+    return np.array(validation_set).astype(np.float), np.array(validation_labels_set).astype(np.str), train_set, train_labels
+
 def main():
-    shape_train, rgb_train, labels_train = readBase('segmentation.data')
-    shape_test, rgb_test, labels_test = readBase('segmentation.test')
+    shape_train, rgb_train, labels_train = readBase('segmentation.test')
+    shape_test, rgb_test, labels_test = readBase('segmentation.data')
+
+    shape_validation, shape_validation_labels, shape_train_set, labels_train_set = getValidationSet(shape_train, labels_train)
+    rgb_validation, rgb_validation_labels, rgb_train_set, labels_train_set = getValidationSet(rgb_train, labels_train)
+
     k = 7
+
     knn(shape_test, labels_test, shape_train, labels_train, k)
     knn(rgb_test, labels_test, rgb_train, labels_train, k)
+
+    # knn(shape_validation, shape_validation_labels, shape_train_set, labels_train_set, k)
+    # knn(rgb_validation, rgb_validation_labels, rgb_train_set, labels_train_set, k)
 
 main()
