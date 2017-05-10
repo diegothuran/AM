@@ -1,30 +1,17 @@
+import random
 import math
 import operator
-import random
 import numpy as np
 from Util import readBase
 
-def normalize(raw_set):
-    normalized = raw_set - raw_set.mean() / raw_set.std()
-    return normalized
+def normalize(data_set):
+    return data_set - data_set.mean() / data_set.std()
 
-def getEuclideanDistance(instance_1, instance_2, length):
+def getEuclideanDistance(instance1, instance2, length):
 	distance = 0
 	for i in range(length):
-		distance += pow((instance_1[i] - instance_2[i]), 2)
+		distance += pow((instance1[i] - instance2[i]), 2)
 	return math.sqrt(distance)
-
-def getNeighbors(test_instance, train_set, train_labels, k):
-    distances = []
-    view_length = len(test_instance) - 1
-    for i in range(len(train_set)):
-        distance = getEuclideanDistance(test_instance, train_set[i], view_length)
-        distances.append((distance, train_labels[i]))
-    distances.sort(key=operator.itemgetter(0))
-    neighbors = []
-    for i in range(k):
-        neighbors.append(distances[i][1])
-    return neighbors
 
 def getVotes(neighbors):
     votes = {}
@@ -36,6 +23,18 @@ def getVotes(neighbors):
     votes = sorted(votes.items(), key=operator.itemgetter(0), reverse=True)
     return votes[0][0]
 
+def getNeighbors(k, instance, train_set, train_labels):
+    distances = []
+    instance_length = len(instance)
+    for i in range(len(train_set)):
+        distance = getEuclideanDistance(instance, train_set[i], instance_length - 1)
+        distances.append((distance, train_labels[i]))
+    distances.sort(key=operator.itemgetter(0))
+    neighbors = []
+    for i in range(k):
+        neighbors.append(distances[i][1])
+    return neighbors
+
 def getAccuracy(test_labels, predictions):
     matches = 0
     for i in range(len(test_labels)):
@@ -43,53 +42,98 @@ def getAccuracy(test_labels, predictions):
             matches += 1
     return (matches / float(len(test_labels))) * 100.0
 
-def knn(test_set, test_labels, train_set, train_labels, k):
-    predictions = []
-    # train_set = normalize(train_set)
-    # test_set = normalize(test_set)
-    print("====== starting... ======")
-    for i in range(len(test_set)):
-        neighbors = getNeighbors(test_set[i], train_set, train_labels, k)
-        result = getVotes(neighbors)
-        predictions.append(result)
-        # print("instance " + repr(i) + ":")
-        # print("neighbors = " + repr(neighbors))
-        # print('predicted = ' + repr(result) + ', actual = ' + repr(test_labels[i]))
-    accuracy = getAccuracy(test_labels, predictions)
-    print("accuracy: " + repr(accuracy) + "%")
-    print("====== end ======")
-    return predictions
-
 def getValidationSet(train_set, train_labels):
     validation_set = []
-    validation_labels_set = []
-    indexes_to_remove = []
-    train_length = len(train_set)
-    validation_length = int(0.3 * train_length)
-    for i in range(validation_length):
-        index = random.randint(0, train_length - 1)
-        while index in indexes_to_remove:
-            index = random.randint(0, train_length - 1)
+    validation_labels = []
+    indexes = []
+    train_set_length = len(train_set)
+    for i in range (int(0.3 * train_set_length)):
+        index = random.randint(0, train_set_length - 1)
+        while index in indexes:
+            index = random.randint(0, train_set_length - 1)
         validation_set.append(train_set[index])
-        validation_labels_set.append(train_labels[index])
-        indexes_to_remove.append(index)
-    train_set = np.delete(train_set, indexes_to_remove, axis=0)
-    train_labels = np.delete(train_labels, indexes_to_remove, axis=0)
-    return np.array(validation_set).astype(np.float), np.array(validation_labels_set).astype(np.str), train_set, train_labels
+        validation_labels.append(train_labels[index])
+        indexes.append(index)
+    train_set = np.delete(train_set, indexes, axis=0)
+    train_labels = np.delete(train_labels, indexes, axis=0)
+    return train_set, train_labels, np.array(validation_set).astype(np.float), np.array(validation_labels).astype(np.str)
+
+def fitK(train_set, train_labels, iterations, k_max):
+    k = 0
+    primes = [2, 3, 5, 7, 11, 13, 17, 19, 23, 27, 29, 31, 35, 37, 41, 43, 47, 53, 59, 61, 67, 71, 73, 79, 83, 87, 89, 95, 97, 101]
+    means = []
+    print('using validation sets...')
+    for l in range (len(primes)):
+        k = primes[l]
+        if(k > k_max):
+            break;
+        accu = 0
+        print('testing for k=' + repr(k) + ':')
+        length = int(iterations)
+        for i in range(length):
+            print('shuffling validation set '+ repr(i + 1) + '...')
+            new_train_set, new_train_labels, validation_set, validation_labels = getValidationSet(train_set, train_labels)
+            print('applying knn...')
+            predictions, accuracy = execute(k, train_set, train_labels, validation_set, validation_labels)
+            accu += accuracy
+            print('accuracy= ' + repr(accuracy))
+        mean = accu / length
+        print('accuracy mean= ' + repr(mean) + '%')
+        means.append((k, mean))
+        means.sort(key=operator.itemgetter(1), reverse=True)
+    k = means[0][0]
+    print('k fixed (k = ' + repr(k) + ')...')
+    return k
+
+def execute(k, train_set, train_labels, test_set, test_labels):
+    predictions = []
+    for i in range(len(test_set)):
+        neighbors = getNeighbors(k, test_set[i], train_set, train_labels)
+        result = getVotes(neighbors)
+        predictions.append(result)
+    accuracy = getAccuracy(test_labels, predictions)
+    return predictions, accuracy
+
+def knn(k, train_set, train_labels, test_set, test_labels, validation, iterations, k_max, norm):
+    if norm:
+        print('normalizing sets...')
+        train_set = normalize(train_set)
+        test_set = normalize(test_set)
+    if validation:
+        k = fitK(train_set, train_labels, iterations, k_max)
+    print('\nstarting knn with test set...')
+    predictions, accuracy = execute(k, train_set, train_labels, test_set, test_labels)
+    print('\nFinal result: k= ' + repr(k) + ', accuracy= ' + repr(accuracy) + '%')
+    return k, predictions, accuracy
 
 def main():
-    shape_train, rgb_train, labels_train = readBase('segmentation.test')
-    shape_test, rgb_test, labels_test = readBase('segmentation.data')
+    shape_train_set, rgb_train_set, train_labels = readBase('segmentation.test')
+    shape_test_set, rgb_test_set, test_labels = readBase('segmentation.data')
 
-    shape_validation, shape_validation_labels, shape_train_set, labels_train_set = getValidationSet(shape_train, labels_train)
-    rgb_validation, rgb_validation_labels, rgb_train_set, labels_train_set = getValidationSet(rgb_train, labels_train)
+    print('executing knn for Shape View...')
+    k, predictions, accuracy = knn(
+        k=2,
+        train_set=shape_train_set,
+        train_labels=train_labels,
+        test_set=shape_test_set,
+        test_labels=test_labels,
+        validation=True,
+        iterations=3,
+        k_max=11,
+        norm=False
+    )
 
-    k = 7
-
-    knn(shape_test, labels_test, shape_train, labels_train, k)
-    knn(rgb_test, labels_test, rgb_train, labels_train, k)
-
-    # knn(shape_validation, shape_validation_labels, shape_train_set, labels_train_set, k)
-    # knn(rgb_validation, rgb_validation_labels, rgb_train_set, labels_train_set, k)
+    print('\nexecuting knn for RGB View...')
+    k, predictions, accuracy = knn(
+        k=2,
+        train_set=rgb_train_set,
+        train_labels=train_labels,
+        test_set=rgb_test_set,
+        test_labels=test_labels,
+        validation=True,
+        iterations=3,
+        k_max=11,
+        norm=False
+    )
 
 main()
