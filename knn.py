@@ -2,7 +2,7 @@ import random
 import math
 import operator
 import numpy as np
-from Util import readBase
+import Util
 
 def normalize(data_set):
     return data_set - data_set.mean() / data_set.std()
@@ -91,7 +91,7 @@ def execute(k, train_set, train_labels, test_set, test_labels):
         neighbors = getNeighbors(k, test_set[i], train_set, train_labels)
         result = getVotes(neighbors)
         predictions.append(result)
-    accuracy = getAccuracy(test_labels, predictions)
+    accuracy = Util.getAccuracy(test_labels, predictions)
     return predictions, accuracy
 
 def knn(k, train_set, train_labels, test_set, test_labels, validation, iterations, k_max, norm):
@@ -136,4 +136,5 @@ def main():
         norm=False
     )
 
-main()
+if __name__ == "__main__":
+    main()

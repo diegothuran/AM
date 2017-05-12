@@ -12,7 +12,8 @@ def readBase(path=str):
 
         for row in csvfile.readlines():
             row = str(row)
-            row = row.replace("\\r\\n'", "")
+            row = row.replace("\\r", "")
+            row = row.replace("\\n", "")
             row = row.replace("b'", "")
             row = row.replace("'", "")
             row = row.split(",")
@@ -21,3 +22,10 @@ def readBase(path=str):
             database_rgb.append(row[10:])
 
     return np.array(database_shape).astype(np.float), np.array(database_rgb).astype(np.float), np.array(labels)
+
+def getAccuracy(test_labels, predictions):
+    matches = 0
+    for i in range(len(test_labels)):
+        if test_labels[i] == predictions[i]:
+            matches += 1
+    return (matches / len(test_labels))
