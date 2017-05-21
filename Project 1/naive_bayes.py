@@ -6,9 +6,11 @@ import Util
 
 def naive_bayes(train_set, train_labels, test_set, test_labels):
 	predictions = []
-	for xk in test_set:
+	for i in range(len(test_set)):
+		xk = test_set[i]
 		result, score = test(xk, train_set, train_labels)
 		predictions.append(result)
+		Util.printProgressBar(i, (len(test_set)-1), prefix = 'Testing:', suffix = 'Complete')
 	accuracy = Util.getAccuracy(test_labels, predictions)
 	return predictions, accuracy
 
@@ -63,7 +65,7 @@ def viewclass(wi, samples, labels):
 
 	return subview
 
-def main():
+def basic():
 	shape_train_set, rgb_train_set, train_labels = Util.readBase('segmentation.test')
 	shape_test_set, rgb_test_set, test_labels = Util.readBase('segmentation.data')
 
@@ -84,6 +86,74 @@ def main():
 		test_labels=test_labels
 	)
 	print("Final result: accuracy = {0:.2f}%".format(accuracy*100))
+
+def cross_validation(folds = 10, times = 30, verbose = 1):
+	shape_set, rgb_set, labels = Util.readBase('segmentation.test')
+	shape_strata = Util.stratify(shape_set, folds, labels)
+	rgb_strata = Util.stratify(rgb_set, folds, labels)
+	labels_strata = Util.stratify(labels, folds, labels)
+
+	print('Executing naive bayes for Shape View...')
+	general_accuracy = [[] for k in range(times)]
+	mean_accuracy = []
+
+	for i in range(times):
+		print("Running cross validaton iteration #"+str(i+1))
+		for j in range(folds):
+			print("Fold "+str(j+1)+" out of "+str(folds))
+			shape_train_set, shape_test_set = Util.split_set(shape_strata, j)
+
+			train_labels, test_labels = Util.split_set(labels_strata, j)
+
+			predictions, accuracy = naive_bayes(
+				shape_train_set, train_labels, shape_test_set, test_labels
+			)
+
+			general_accuracy[i].append(accuracy)
+
+	for i in range(times):
+		mean_accuracy.append(np.mean(general_accuracy[i]))
+
+	print("\nFinal result: mean accuracy = {0:.2f}%".format(np.mean(mean_accuracy)*100))
+	if verbose >= 2:
+		print("Accuracy results report: ")
+		print(mean_accuracy)
+	if verbose >= 3:
+		print("Accuracy detailed report: ")
+		print(general_accuracy)
+
+	print('Executing naive bayes for RGB View...')
+	general_accuracy = [[] for k in range(times)]
+	mean_accuracy = []
+	
+	for i in range(times):
+		print("Running cross validaton iteration #"+str(i+1))
+		for j in range(folds):
+			print("Fold "+str(j+1)+" out of "+str(folds))
+			rgb_train_set, rgb_test_set = Util.split_set(rgb_strata, j)
+
+			train_labels, test_labels = Util.split_set(labels_strata, j)
+
+			predictions, accuracy = naive_bayes(
+				rgb_train_set, train_labels, rgb_test_set, test_labels
+			)
+
+			general_accuracy[i].append(accuracy)
+
+	for i in range(times):
+		mean_accuracy.append(np.mean(general_accuracy[i]))
+
+	print("\nFinal result: mean accuracy = {0:.2f}%".format(np.mean(mean_accuracy)*100))
+	if verbose >= 2:
+		print("Accuracy results report: ")
+		print(mean_accuracy)
+	if verbose >= 3:
+		print("Accuracy detailed report: ")
+		print(general_accuracy)
+
+def main():
+	# basic()
+	cross_validation(times=1, verbose=3)
 
 if __name__ == "__main__":
 	main()

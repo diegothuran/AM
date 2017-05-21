@@ -38,34 +38,11 @@ def basic():
 	)
 	print("Final result: accuracy = {0:.2f}%".format(accuracy*100))
 
-def stratify(dataset, folds, labels):
-	strata = [[] for f in range(folds)]
-	idx = 0
-
-	if len(dataset) % len(set(labels)) != 0 or (len(dataset)/len(set(labels))) %  folds != 0:
-		raise ValueError('The dataset does not support stratification by the number of folds selected!')
-	else:
-		for sample in dataset:
-			strata[idx].append(sample)
-			idx = (idx + 1) % folds
-
-	return strata
-
-def split_set(dataset_strata, offset):
-	test_set = np.asarray(dataset_strata[offset])
-	train_set = []
-	for j in (i for i in range(len(dataset_strata)) if i != offset):
-		for sample in dataset_strata[j]:
-			train_set.append(sample)
-	train_set = np.asarray(train_set)
-
-	return train_set, test_set
-
-def cross_validation(folds = 10, times = 30, verbose=1):
+def cross_validation(folds = 10, times = 30, verbose = 1):
 	shape_set, rgb_set, labels = Util.readBase('segmentation.test')
-	shape_strata = stratify(shape_set, folds, labels)
-	rgb_strata = stratify(rgb_set, folds, labels)
-	labels_strata = stratify(labels, folds, labels)
+	shape_strata = Util.stratify(shape_set, folds, labels)
+	rgb_strata = Util.stratify(rgb_set, folds, labels)
+	labels_strata = Util.stratify(labels, folds, labels)
 
 	general_accuracy = [[] for k in range(times)]
 	mean_accuracy = []
@@ -74,11 +51,11 @@ def cross_validation(folds = 10, times = 30, verbose=1):
 		print("Running cross validaton iteration #"+str(i+1))
 		for j in range(folds):
 			print("Fold "+str(j+1)+" out of "+str(folds))
-			shape_train_set, shape_test_set = split_set(shape_strata, j)
+			shape_train_set, shape_test_set = Util.split_set(shape_strata, j)
 
-			rgb_train_set, rgb_test_set = split_set(rgb_strata, j)
+			rgb_train_set, rgb_test_set = Util.split_set(rgb_strata, j)
 
-			train_labels, test_labels = split_set(labels_strata, j)
+			train_labels, test_labels = Util.split_set(labels_strata, j)
 
 			predictions, accuracy = combined_classifier(
 				shape_train_set, rgb_train_set, train_labels, shape_test_set, rgb_test_set, test_labels, k=2
