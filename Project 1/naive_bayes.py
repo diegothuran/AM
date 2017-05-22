@@ -1,8 +1,13 @@
 from __future__ import division
+from optparse import OptionParser
 import numpy as np
 import math
 import sys
 import Util
+
+parser = OptionParser()
+parser.add_option("-t","--view",dest="view",help="select view type")
+parser.add_option("-v","--verbose",dest="verbose",help="select verbose level",default=1)
 
 def naive_bayes(train_set, train_labels, test_set, test_labels):
 	predictions = []
@@ -87,13 +92,13 @@ def basic():
 	)
 	print("Final result: accuracy = {0:.2f}%".format(accuracy*100))
 
-def cross_validation(folds = 10, times = 30, verbose = 1):
+def cross_validation(view, folds = 10, times = 30, verbose = 1):
 	shape_set, rgb_set, labels = Util.readBase('segmentation.test')
 	shape_strata = Util.stratify(shape_set, folds, labels)
 	rgb_strata = Util.stratify(rgb_set, folds, labels)
 	labels_strata = Util.stratify(labels, folds, labels)
 
-	print('Executing naive bayes for Shape View...')
+	print('Executing naive bayes for %s View...' % view)
 	general_accuracy = [[] for k in range(times)]
 	mean_accuracy = []
 
@@ -101,41 +106,17 @@ def cross_validation(folds = 10, times = 30, verbose = 1):
 		print("Running cross validaton iteration #"+str(i+1))
 		for j in range(folds):
 			print("Fold "+str(j+1)+" out of "+str(folds))
-			shape_train_set, shape_test_set = Util.split_set(shape_strata, j)
+			if view.lower() == 'SHAPE'.lower():
+				train_set, test_set = Util.split_set(shape_strata, j)
+			elif view.lower() == 'RGB'.lower():
+				train_set, test_set = Util.split_set(rgb_strata, j)
+			else:
+				raise ValueError('View %s not supported!' % view)
 
 			train_labels, test_labels = Util.split_set(labels_strata, j)
 
 			predictions, accuracy = naive_bayes(
-				shape_train_set, train_labels, shape_test_set, test_labels
-			)
-
-			general_accuracy[i].append(accuracy)
-
-	for i in range(times):
-		mean_accuracy.append(np.mean(general_accuracy[i]))
-
-	print("\nFinal result: mean accuracy = {0:.2f}%".format(np.mean(mean_accuracy)*100))
-	if verbose >= 2:
-		print("Accuracy results report: ")
-		print(mean_accuracy)
-	if verbose >= 3:
-		print("Accuracy detailed report: ")
-		print(general_accuracy)
-
-	print('Executing naive bayes for RGB View...')
-	general_accuracy = [[] for k in range(times)]
-	mean_accuracy = []
-	
-	for i in range(times):
-		print("Running cross validaton iteration #"+str(i+1))
-		for j in range(folds):
-			print("Fold "+str(j+1)+" out of "+str(folds))
-			rgb_train_set, rgb_test_set = Util.split_set(rgb_strata, j)
-
-			train_labels, test_labels = Util.split_set(labels_strata, j)
-
-			predictions, accuracy = naive_bayes(
-				rgb_train_set, train_labels, rgb_test_set, test_labels
+				train_set, train_labels, test_set, test_labels
 			)
 
 			general_accuracy[i].append(accuracy)
@@ -153,7 +134,8 @@ def cross_validation(folds = 10, times = 30, verbose = 1):
 
 def main():
 	# basic()
-	cross_validation(times=1, verbose=3)
+	(options, args) = parser.parse_args()
+	cross_validation(options.view, verbose=options.verbose)
 
 if __name__ == "__main__":
 	main()
