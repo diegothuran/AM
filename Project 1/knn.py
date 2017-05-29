@@ -130,6 +130,3 @@ def classify(k, instance, train_set, train_labels):
 #         k_max=11,
 #         norm=False
 #     )
-
-# if __name__ == "__main__":
-#     main()
