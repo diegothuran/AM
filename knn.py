@@ -58,33 +58,6 @@ def getValidationSet(train_set, train_labels):
     train_labels = np.delete(train_labels, indexes, axis=0)
     return train_set, train_labels, np.array(validation_set).astype(np.float), np.array(validation_labels).astype(np.str)
 
-def fitK(train_set, train_labels, iterations, k_max):
-    k = 0
-    primes = [2, 3, 5, 7, 11, 13, 17, 19, 23, 27, 29, 31, 35, 37, 41, 43, 47, 53, 59, 61, 67, 71, 73, 79, 83, 87, 89, 95, 97, 101]
-    means = []
-    print('using validation sets...')
-    for l in range (len(primes)):
-        k = primes[l]
-        if(k > k_max):
-            break;
-        accu = 0
-        print('testing for k=' + repr(k) + ':')
-        length = int(iterations)
-        for i in range(length):
-            print('shuffling validation set '+ repr(i + 1) + '...')
-            new_train_set, new_train_labels, validation_set, validation_labels = getValidationSet(train_set, train_labels)
-            print('applying knn...')
-            predictions, accuracy = execute(k, train_set, train_labels, validation_set, validation_labels)
-            accu += accuracy
-            print('accuracy= ' + repr(accuracy))
-        mean = accu / length
-        print('accuracy mean= ' + repr(mean) + '%')
-        means.append((k, mean))
-        means.sort(key=operator.itemgetter(1), reverse=True)
-    k = means[0][0]
-    print('k fixed (k = ' + repr(k) + ')...')
-    return k
-
 def execute(k, train_set, train_labels, test_set, test_labels):
     predictions = []
     for i in range(len(test_set)):
@@ -94,47 +67,69 @@ def execute(k, train_set, train_labels, test_set, test_labels):
     accuracy = Util.getAccuracy(test_labels, predictions)
     return predictions, accuracy
 
-def knn(k, train_set, train_labels, test_set, test_labels, validation, iterations, k_max, norm):
-    if norm:
-        print('normalizing sets...')
-        train_set = normalize(train_set)
-        test_set = normalize(test_set)
-    if validation:
-        k = fitK(train_set, train_labels, iterations, k_max)
-    print('\nstarting knn with test set...')
-    predictions, accuracy = execute(k, train_set, train_labels, test_set, test_labels)
-    print('\nFinal result: k= ' + repr(k) + ', accuracy= ' + repr(accuracy) + '%')
-    return k, predictions, accuracy
+def fitK(train_set, train_labels, iterations, k_max):
+    k = 0
+    primes = [2, 3, 5, 7, 11, 13, 17, 19, 23, 27, 29, 31, 35, 37, 41, 43, 47, 53, 59, 61, 67, 71, 73, 79, 83, 87, 89, 95, 97, 101]
+    means = []
+    for l in range(len(primes)):
+        k = primes[l]
+        if(k > k_max):
+            break;
+        accu = 0
+        length = int(iterations)
+        for i in range(length):
+            new_train_set, new_train_labels, validation_set, validation_labels = getValidationSet(train_set, train_labels)
+            predictions, accuracy = execute(k, train_set, train_labels, validation_set, validation_labels)
+            accu += accuracy
+        mean = accu / length
+        means.append((k, mean))
+        means.sort(key=operator.itemgetter(1), reverse=True)
+    k = means[0][0]
+    return k
 
-def main():
-    shape_train_set, rgb_train_set, train_labels = readBase('segmentation.test')
-    shape_test_set, rgb_test_set, test_labels = readBase('segmentation.data')
+def classify(k, instance, train_set, train_labels):
+    neighbors = getNeighbors(k, instance, train_set, train_labels)
+    result = getVotes(neighbors)
+    return result
 
-    print('executing knn for Shape View...')
-    k, predictions, accuracy = knn(
-        k=2,
-        train_set=shape_train_set,
-        train_labels=train_labels,
-        test_set=shape_test_set,
-        test_labels=test_labels,
-        validation=True,
-        iterations=3,
-        k_max=11,
-        norm=False
-    )
+# def knn(k, train_set, train_labels, test_set, test_labels, validation, iterations, k_max, norm):
+#     if norm:
+#         train_set = normalize(train_set)
+#         test_set = normalize(test_set)
+#     if validation:
+#         k = fitK(train_set, train_labels, iterations, k_max)
+#     predictions, accuracy = execute(k, train_set, train_labels, test_set, test_labels)
+#     return k, predictions, accuracy
 
-    print('\nexecuting knn for RGB View...')
-    k, predictions, accuracy = knn(
-        k=2,
-        train_set=rgb_train_set,
-        train_labels=train_labels,
-        test_set=rgb_test_set,
-        test_labels=test_labels,
-        validation=True,
-        iterations=3,
-        k_max=11,
-        norm=False
-    )
+# def main():
+#     shape_train_set, rgb_train_set, train_labels = readBase('segmentation.test')
+#     shape_test_set, rgb_test_set, test_labels = readBase('segmentation.data')
+#
+#     # print('executing knn for Shape View...')
+#     k, predictions, accuracy = knn(
+#         k=2,
+#         train_set=shape_train_set,
+#         train_labels=train_labels,
+#         test_set=shape_test_set,
+#         test_labels=test_labels,
+#         validation=True,
+#         iterations=3,
+#         k_max=11,
+#         norm=False
+#     )
+#
+#     # print('\nexecuting knn for RGB View...')
+#     k, predictions, accuracy = knn(
+#         k=2,
+#         train_set=rgb_train_set,
+#         train_labels=train_labels,
+#         test_set=rgb_test_set,
+#         test_labels=test_labels,
+#         validation=True,
+#         iterations=3,
+#         k_max=11,
+#         norm=False
+#     )
 
-if __name__ == "__main__":
-    main()
+# if __name__ == "__main__":
+#     main()
