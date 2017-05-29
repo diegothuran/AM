@@ -27,27 +27,6 @@ def combined_classifier(shape_train_set, rgb_train_set, train_labels, shape_test
 	accuracy = Util.getAccuracy(test_labels, predictions)
 	return predictions, accuracy
 
-# def combined_classifier(shape_train_set, rgb_train_set, train_labels, shape_test_set, rgb_test_set, test_labels, k):
-# 	predictions = []
-# 	for i in range(len(shape_test_set)):
-# 		shape_xk = shape_test_set[i]
-# 		rgb_xk = rgb_test_set[i]
-#
-# 		result_1, score = naive_bayes.test(shape_xk, shape_train_set, train_labels)
-# 		result_2, score = naive_bayes.test(rgb_xk, rgb_train_set, train_labels)
-#
-# 		neighbors = knn.getNeighbors(k, shape_xk, shape_train_set, train_labels)
-# 		result_3 = knn.getVotes(neighbors)
-# 		neighbors = knn.getNeighbors(k, rgb_xk, rgb_train_set, train_labels)
-# 		result_4 = knn.getVotes(neighbors)
-#
-# 		result = plurality_vote(result_1, result_2, result_3, result_4)
-#
-# 		predictions.append(result)
-# 		Util.printProgressBar(i, (len(shape_test_set)-1), prefix = 'Testing:', suffix = 'Complete')
-# 	accuracy = Util.getAccuracy(test_labels, predictions)
-# 	return predictions, accuracy
-
 def basic():
 	shape_train_set, rgb_train_set, train_labels = Util.readBase('segmentation.test')
 	shape_test_set, rgb_test_set, test_labels = Util.readBase('segmentation.data')
@@ -80,10 +59,6 @@ def cross_validation(folds = 10, times = 30, verbose = 1):
 			rgb_train_set, rgb_test_set = Util.split_set(rgb_strata, j)
 
 			train_labels, test_labels = Util.split_set(labels_strata, j)
-
-			# predictions, accuracy = combined_classifier(
-			# 	shape_train_set, rgb_train_set, train_labels, shape_test_set, rgb_test_set, test_labels, k=2
-			# )
 
 			# usando os valores de k para view
 			predictions, accuracy = combined_classifier(
