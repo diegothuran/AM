@@ -57,17 +57,14 @@ def basic():
 	)
 	print("Final result: accuracy = {0:.2f}%".format(accuracy*100))
 
-def split_set(dataset, folds, offset):
-	test_idx = np.arange(offset,len(dataset),folds)
-	
-	test_set = np.asarray([dataset[i] for i in test_idx])
-	train_set = np.asarray([dataset[i] for i in range(len(dataset)) if i not in test_idx])
-
-	return train_set, test_set
-
-def cross_validation(folds = 10, times = 30):
+def cross_validation(folds = 10, times = 30, verbose = 1):
 	shape_set, rgb_set, labels = Util.readBase('segmentation.test')
-	general_accuracy = []
+	shape_strata = Util.stratify(shape_set, folds, labels)
+	rgb_strata = Util.stratify(rgb_set, folds, labels)
+	labels_strata = Util.stratify(labels, folds, labels)
+
+	general_accuracy = [[] for k in range(times)]
+	mean_accuracy = []
 
 	# ajustando os k vizinhos de cada view
 	print("Fitting k for each view...")
@@ -78,11 +75,11 @@ def cross_validation(folds = 10, times = 30):
 		print("Running cross validaton iteration #"+str(i+1))
 		for j in range(folds):
 			print("Fold "+str(j+1)+" out of "+str(folds))
-			shape_train_set, shape_test_set = split_set(shape_set, folds, j)
+			shape_train_set, shape_test_set = Util.split_set(shape_strata, j)
 
-			rgb_train_set, rgb_test_set = split_set(rgb_set, folds, j)
+			rgb_train_set, rgb_test_set = Util.split_set(rgb_strata, j)
 
-			train_labels, test_labels = split_set(labels, folds, j)
+			train_labels, test_labels = Util.split_set(labels_strata, j)
 
 			# predictions, accuracy = combined_classifier(
 			# 	shape_train_set, rgb_train_set, train_labels, shape_test_set, rgb_test_set, test_labels, k=2
@@ -94,13 +91,21 @@ def cross_validation(folds = 10, times = 30):
 				rgb_k=k2
 			)
 
-			general_accuracy.append(accuracy)
-	print("\nFinal result: mean accuracy = {0:.2f}%".format(np.mean(general_accuracy)*100))
-	print("Accuracy results report: ")
-	print(general_accuracy)
+			general_accuracy[i].append(accuracy)
+
+	for i in range(times):
+		mean_accuracy.append(np.mean(general_accuracy[i]))
+
+	print("\nFinal result: mean accuracy = {0:.2f}%".format(np.mean(mean_accuracy)*100))
+	if verbose >= 2:
+		print("Accuracy results report: ")
+		print(mean_accuracy)
+	if verbose >= 3:
+		print("Accuracy detailed report: ")
+		print(general_accuracy)
 
 def main():
 	# basic()
-	cross_validation(times=1)
+	cross_validation(times=1, verbose=3)
 
 main()
