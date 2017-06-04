@@ -1,4 +1,4 @@
-from Util import readBase
+from Util import readBase, generate_dissimilarity_matrix
 from scipy import spatial
 
 #variaveis que recebem os valores correspondentes pada shape as 9 primeiras
@@ -6,9 +6,6 @@ from scipy import spatial
 # labels as classificacoes
 shape, rgb, labels = readBase('segmentation.test')
 
-#matrix de dissimilaridade para as variaveis do shape
-shape_dissimilarity_matrix = spatial.distance.cdist(shape, shape, 'euclidean')
-#matrix de dissimilaridade para as variaveis rgb
-rgb_dissimilarity_matrix = spatial.distance.cdist(rgb, rgb, 'euclidean')
+diss = generate_dissimilarity_matrix(shape.tolist())
 
-print(shape_dissimilarity_matrix)
+print(diss)

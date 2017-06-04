@@ -1,5 +1,6 @@
 import os, csv
 import numpy as np
+from scipy.spatial import distance
 
 '''
     Método para leitura do arquivo da base de dados
@@ -72,3 +73,24 @@ def printProgressBar (iteration, total, prefix = '', suffix = '', decimals = 2, 
     # Print New Line on Complete
     if iteration == total: 
         print()
+
+def generate_dissimilarity_matrix(data=[]):
+    """
+        Função que gera uma matriz de dissimilaridade de um utilizando a distância euclidiana
+    :param data: vetor de entrada para o qual será calculada a matriz de dissimilaridade.
+    :return: matriz de dissimilaridade
+    """
+    dissimilarity_matrix = []
+
+    for patter in data:
+        temp = []
+        for patter2 in data:
+            temp.append(distance.euclidean(patter, patter2))
+        dissimilarity_matrix.append(temp)
+
+    return dissimilarity_matrix
+
+def generate_dissimilarity_matrix_scipy(data=[]):
+    return distance.cdist(data, data)
+
+
