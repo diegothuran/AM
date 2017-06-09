@@ -162,7 +162,7 @@ d
 
 
 if __name__=='__main__':
-    shape_database, rgb_database, labels = readBase("Project 1/segmentation.test")
+    shape_database, rgb_database, labels = readBase("segmentation.test")
     shape_dissimilarity = generate_dissimilarity_matrix_scipy(shape_database)
     rgb_dissmilarity = generate_dissimilarity_matrix_scipy(rgb_database)
 

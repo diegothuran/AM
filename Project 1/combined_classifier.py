@@ -51,7 +51,7 @@ def cross_validation(folds = 10, times = 30, verbose = 1):
 	k2 = knn.fitK(rgb_set, labels, iterations=2, k_max=11)
 
 	for i in range(times):
-		print("Running cross validaton iteration #"+str(i+1))
+		print("Running cross validaton iteration #"+str(i+1)+" out of "+str(times))
 		for j in range(folds):
 			print("Fold "+str(j+1)+" out of "+str(folds))
 			shape_train_set, shape_test_set = Util.split_set(shape_strata, j)
@@ -81,6 +81,6 @@ def cross_validation(folds = 10, times = 30, verbose = 1):
 
 def main():
 	# basic()
-	cross_validation(times=1, verbose=3)
+	cross_validation(verbose=3)
 
 main()

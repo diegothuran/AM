@@ -103,7 +103,7 @@ def cross_validation(view, folds = 10, times = 30, verbose = 1):
 	mean_accuracy = []
 
 	for i in range(times):
-		print("Running cross validaton iteration #"+str(i+1))
+		print("Running cross validaton iteration #"+str(i+1)+" out of "+str(times))
 		for j in range(folds):
 			print("Fold "+str(j+1)+" out of "+str(folds))
 			if view.lower() == 'SHAPE'.lower():
@@ -135,7 +135,7 @@ def cross_validation(view, folds = 10, times = 30, verbose = 1):
 def main():
 	# basic()
 	(options, args) = parser.parse_args()
-	cross_validation(options.view, verbose=options.verbose)
+	cross_validation(options.view, verbose=int(options.verbose))
 
 if __name__ == "__main__":
 	main()
