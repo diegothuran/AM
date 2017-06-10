@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import os, csv
 import numpy as np
 from scipy.spatial import distance

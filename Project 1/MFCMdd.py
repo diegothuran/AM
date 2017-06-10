@@ -1,4 +1,3 @@
-import random
 import numpy as np
 from Util import *
 
@@ -36,18 +35,19 @@ class MFCMdd:
 
     def compute_menbership_by_pattern(self, pattern):
         temp = []
+
         for k in range(self.k):
             sum = 0.0
             for h in range(self.k):
-                num = 0.0
-                den = 0.0
+                w = 0.0
+                wh = 0.0
                 for j in range(len(self.datasets)):
-                    num += self.weights[k][j]
+                    w += self.weights[k][j] * np.sum(self.get_dissimilarities_by_prototypes(k, pattern, j))
                 for j in range(len(self.datasets)):
-                    den +=self.weights[h][j]
+                    wh += self.weights[h][j] * np.sum(self.get_dissimilarities_by_prototypes(h, pattern, j))
+                sum += pow(w/wh, (1/self.m -1))
+            temp.append(pow(sum, -1))
 
-                sum += num * np.sum(self.get_dissimilarities_by_prototypes(k, pattern))/ den * np.sum(self.get_dissimilarities_by_prototypes(h, pattern))
-            temp.append(pow(pow(sum, 1/(self.m-1)), -1))
         return temp
 
     def compute_membership(self):
@@ -62,22 +62,24 @@ class MFCMdd:
     def calculate_J(self):
         sum = 0.0
         for k in range(self.k):
-            sum_u = 0.0
-            sum_w = np.sum(self.weights)
-            sum_dissmilarities = 0.0
+            u = 0.0
+            w = 0.0
             for i in range(len(self.datasets[0])):
-                sum_u += np.sum(self.U[i])
-                sum_dissmilarities = np.sum(np.sum([self.get_dissimilarities_by_prototypes(h, i)]) for h in range(self.k))
-            sum += sum_u * sum_w * sum_dissmilarities
+                u += self.U[i][k]
+                for j in range(len(self.datasets)):
+                    w += self.weights[k][j] * np.sum(self.get_dissimilarities_by_prototypes(k, i, j))
+            sum += u * w
 
         return sum
 
-    def get_dissimilarities_by_prototypes(self, cluster, patter):
+    def get_dissimilarities_by_prototypes(self, cluster, patter, view=int):
         dissimilarities = []
         cluster = self.G[cluster]
-        for i in range(self.q):
-            dissimilarities.append(self.datasets[0][cluster[i]][patter])
-            dissimilarities.append(self.datasets[1][cluster[i]][patter])
+
+        if len(cluster) > 0:
+            for i in range(self.q):
+                dissimilarities.append(self.datasets[view][cluster[i]][patter])
+
 
         return dissimilarities
 
@@ -105,56 +107,59 @@ d
             temp = np.random.dirichlet(np.ones(k), size=1)
             u.append(temp.tolist())
 
-        return np.array(u)
+        return np.array(u)/len(self.datasets)
 
     def update_G(self):
-        result = []
-        for h in range(len(self.datasets[0])):
+        G = [[] for i in range(self.k)]
+        usados = []
+        for k in range(self.k):
+            result = []
             for i in range(len(self.datasets[0])):
-                u = 0.0
-                p = 0.0
+                u = np.sum(np.array(self.U).T[k])
+                w = 0.0
+                for h in range(len(self.datasets[0])):
+                    for j in range(len(self.datasets)):
+                        w += self.weights[k][j] * self.datasets[j][i][h]
+                result.append(u * w)
 
-                for k in range(self.k):
-                    u += self.U[i][k]
-                for j in range(len(self.datasets)):
-                    p += np.sum(self.weights[j]) * self.datasets[j][i][h]
-                result.append(u * p)
-
-        matrices = self.get_matricies_by_classes()
-        G = [[] for i in range(len(matrices))]
-        i = 0
-        while len(np.array(G).flatten()) is not 9 and i < len(self.datasets[0]):
-            temp = np.argmin(self.U[np.argmin(result)])
-            if len(G[temp]) < 3:
-                G[temp].append(i)
-
-            result.pop(int(temp))
-
+            while len(G[k]) < 3:
+                id_min = np.argmin(result)
+                if not usados.__contains__(id_min):
+                    usados.append(id_min)
+                    G[k].append(id_min)
+                result.pop(id_min)
         return G
+
+    def select(self, lst, indices=[]):
+        return [lst[i] for i in indices]
 
     def update_weights(self):
         weights =[]
+
         for k in range(self.k):
             temp = []
-            for p in range(len(self.datasets)):
-                u = 0.0
-                r = 1.0
+            for j in range(len(self.datasets)):
+                num = 1.0
                 den = 0.0
+                for h in range(len(self.datasets)):
+                    u = 0.0
+                    for i in range(len(self.datasets[0])):
+                        u += self.U[i][k] * np.sum(self.get_dissimilarities_by_prototypes(k, i, h))
+                    num *= u
                 for i in range(len(self.datasets[0])):
-                    u += self.U[i][k] * np.sum(self.get_dissimilarities_by_prototypes(k, i))
-                    den += self.U[i][k] * np.sum(self.get_dissimilarities_by_prototypes(k, i))
-                    r *= u
-                temp.append([pow(r,1/len(self.datasets))/den])
+                    den += self.U[i][k] * np.sum(self.get_dissimilarities_by_prototypes(k, i, j))
+                temp.append(pow(num, (1/len(self.datasets))) / den)
             weights.append(temp)
-
         return weights
+
     def fit(self):
+        print(self.J)
         for i in range(self.T):
             self.G = self.update_G()
             self.weights = self.update_weights()
             self.U = self.compute_membership()
             self.J = self.calculate_J()
-
+            print("iteration " + str(i+1) + " " + str(self.J))
         print(self.G)
         print(self.J)
         print(self.weights)
@@ -162,7 +167,7 @@ d
 
 
 if __name__=='__main__':
-    shape_database, rgb_database, labels = readBase("segmentation.test")
+    shape_database, rgb_database, labels = readBase("Project 1/segmentation.test")
     shape_dissimilarity = generate_dissimilarity_matrix_scipy(shape_database)
     rgb_dissmilarity = generate_dissimilarity_matrix_scipy(rgb_database)
 
