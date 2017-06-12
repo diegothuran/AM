@@ -4,7 +4,7 @@ from Util import *
 class MFCMdd:
 
 
-    def __init__(self, datasets=[], k=7, m=1.6, q=3, T=100):
+    def __init__(self, datasets=[], k=7, m=1.6, q=3, T=10):
         self.datasets = datasets
         self.k = k
         self.m = m
@@ -66,9 +66,8 @@ class MFCMdd:
             w = 0.0
             for i in range(len(self.datasets[0])):
                 u += self.U[i][k]
-                for j in range(len(self.datasets)):
-                    w += self.weights[k][j] * np.sum(self.get_dissimilarities_by_prototypes(k, i, j))
-            sum += u * w
+
+            sum += u * np.sum(np.array(self.weights)[k]) * np.sum([self.get_dissimilarities_by_prototypes(k, i, j) for j in range(len(self.datasets))])
 
         return sum
 
@@ -91,7 +90,7 @@ class MFCMdd:
         :param k:
         :return:
         """
-        weights = np.ones((k, dataset_len), dtype=float)
+        weights = np.ones((k, dataset_len), dtype=float)/len(self.datasets)
         return weights.tolist()
 
     def initialize_U(self, dataset_len, k=int):
@@ -160,9 +159,20 @@ d
             self.U = self.compute_membership()
             self.J = self.calculate_J()
             print("iteration " + str(i+1) + " " + str(self.J))
+        print("G:")
         print(self.G)
-        print(self.J)
+        print("grupos")
+        matrices = self.get_matricies_by_classes()
+        i = 0
+        for matrix in matrices:
+            print("Grupo: " + str(i))
+            print(matrix)
+            i+=1
+        print("Pesos:")
         print(self.weights)
+        print("Fuzzy:")
+        print(self.U)
+
 
 
 
