@@ -4,7 +4,7 @@ from Util import *
 class MFCMdd:
 
 
-    def __init__(self, datasets=[], k=7, m=1.6, q=3, T=10):
+    def __init__(self, datasets=[], k=7, m=1.6, q=3, T=100):
         self.datasets = datasets
         self.k = k
         self.m = m
