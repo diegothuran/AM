@@ -12,7 +12,7 @@ warnings.warn = warn
 
 def main():
 	results = {}
-	training_samples, training_classes = Util.read_base('abalone-processed.data')
+	training_samples, training_classes = Util.read_base('abalone-ACNN96.data')
 
 	# ==================================================
 	# K Nearest Neighbors classifier
@@ -30,7 +30,7 @@ def main():
 		print("Testing values for '"+param+"'")
 		print("========================================")
 		classifier = KNeighborsClassifier()
-		grid = GridSearchCV(estimator=classifier, scoring="accuracy",
+		grid = GridSearchCV(estimator=classifier, #scoring="accuracy",
 			param_grid={param:params[param]})
 		grid.fit(training_samples, training_classes)
 		print("> Best score: "+str(grid.best_score_))
