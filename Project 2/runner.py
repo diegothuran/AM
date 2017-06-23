@@ -2,53 +2,52 @@ from sklearn.neighbors import KNeighborsClassifier
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.svm import SVC
 from sklearn.neural_network import MLPClassifier
+from Util import timing
 
-import random
-import math
+import random, math
 import numpy as np
 
 import Util
 import ignore_warnings
 
-def run(classifier, data, labels):
-	scores = []
+@timing
+def cross_validation(model, data, labels, folds = 10, times = 30):
+	data_strata = Util.stratify(data, folds, labels)
+	labels_strata = Util.stratify(labels, folds, labels)
 
-	for k in range(30):
-		training_ids = random.sample(list(range(len(data))),math.ceil(len(data)*2/3))
-		test_ids = [i for i in list(range(len(data))) if i not in training_ids]
+	general_accuracy = [[] for k in range(times)]
+	mean_accuracy = []
 
-		training_samples = [data[i] for i in training_ids]
-		training_labels = [labels[i] for i in training_ids]
-		test_samples = [data[i] for i in test_ids]
-		test_labels = [labels[i] for i in test_ids]
+	for i in range(times):
+		print("Running cross validaton iteration #"+str(i+1)+" out of "+str(times))
+		for j in range(folds):
+			print("Fold "+str(j+1)+" out of "+str(folds))
+			train_set, test_set = Util.split_set(shape_strata, j)
+			train_labels, test_labels = Util.split_set(labels_strata, j)
 
-		classifier.fit(training_samples, training_labels)
+			model.fit(train_set,train_labels)
 
-		hits = 0
-		for i in range(len(test_samples)):
-			sample = test_samples[i]
-			target = test_labels[i]
+			accuracy = test(model, test_set, test_labels)
 
-			prediction = classifier.predict(sample)
-			if prediction == target:
-				hits += 1
+			general_accuracy[i].append(accuracy)
 
-		scores.append(hits/len(test_samples))
-		Util.printProgressBar(k, 29, prefix = 'Running:', suffix = 'Complete')
-	print("Score = "+str(np.mean(scores)))
+	for i in range(times):
+		mean_accuracy.append(np.mean(general_accuracy[i]))
+
+	print("\nFinal result: mean accuracy = {0:.2f}%".format(np.mean(mean_accuracy)*100))
+	print("Accuracy results report: ")
+	print(mean_accuracy)
 
 def main():
 	data, labels = Util.read_base('abalone-ACNN96.data')
-	run(KNeighborsClassifier(n_neighbors=10,weights="uniform",algorithm="ball_tree",leaf_size=10), data, labels)
-	run(DecisionTreeClassifier(criterion="gini",max_features="log2",min_samples_split=2,min_samples_leaf=3), data, labels)
-	run(SVC(C=100.0,kernel="linear",gamma=0.001), data, labels)
-	run(MLPClassifier(), data, labels)
+	# run(KNeighborsClassifier(n_neighbors=10,weights="uniform",algorithm="ball_tree",leaf_size=10), data, labels)
+	# run(DecisionTreeClassifier(criterion="gini",max_features="log2",min_samples_split=2,min_samples_leaf=3), data, labels)
+	# run(SVC(C=100.0,kernel="linear",gamma=0.001), data, labels)
+	# run(MLPClassifier(), data, labels)
 
-	print("-------------------")
-
-	run(KNeighborsClassifier(), data, labels)
-	run(DecisionTreeClassifier(), data, labels)
-	run(SVC(), data, labels)
-	run(MLPClassifier(), data, labels)
+	cross_validation(KNeighborsClassifier(), data, labels)
+	cross_validation(DecisionTreeClassifier(), data, labels)
+	cross_validation(SVC(), data, labels)
+	cross_validation(MLPClassifier(), data, labels)
 
 main()

@@ -1,4 +1,4 @@
-import os, csv
+import os, csv, time
 import numpy as np
 
 def read_base(path=str):
@@ -37,6 +37,29 @@ def segment(path=str):
                 row[-1] = '3'
             print(",".join(row))
 
+def stratify(dataset, folds, labels):
+    strata = [[] for f in range(folds)]
+    idx = 0
+
+    if len(dataset) % len(set(labels)) != 0 or (len(dataset)/len(set(labels))) %  folds != 0:
+        raise ValueError('The dataset does not support stratification by the number of folds selected!')
+    else:
+        for sample in dataset:
+            strata[idx].append(sample)
+            idx = (idx + 1) % folds
+
+    return strata
+
+def split_set(dataset_strata, offset):
+    test_set = np.asarray(dataset_strata[offset])
+    train_set = []
+    for j in (i for i in range(len(dataset_strata)) if i != offset):
+        for sample in dataset_strata[j]:
+            train_set.append(sample)
+    train_set = np.asarray(train_set)
+
+    return train_set, test_set
+
 def printProgressBar (iteration, total, prefix = '', suffix = '', decimals = 2, length = 50, fill = '█'):
     """
     Call in a loop to create terminal progress bar
@@ -56,3 +79,12 @@ def printProgressBar (iteration, total, prefix = '', suffix = '', decimals = 2, 
     # Print New Line on Complete
     if iteration == total: 
         print()
+
+def timing(f):
+    def wrap(*args):
+        time1 = time.time()
+        ret = f(*args)
+        time2 = time.time()
+        print('{} function took {} ms'.format(f.__name__, (time2-time1)*1000.0))
+        return ret
+    return wrap
