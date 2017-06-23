@@ -22,7 +22,7 @@ def cross_validation(model, data, labels, folds = 10, times = 30):
 		print("Running cross validaton iteration #"+str(i+1)+" out of "+str(times))
 		for j in range(folds):
 			print("Fold "+str(j+1)+" out of "+str(folds))
-			train_set, test_set = Util.split_set(shape_strata, j)
+			train_set, test_set = Util.split_set(data_strata, j)
 			train_labels, test_labels = Util.split_set(labels_strata, j)
 
 			model.fit(train_set,train_labels)
@@ -37,6 +37,17 @@ def cross_validation(model, data, labels, folds = 10, times = 30):
 	print("\nFinal result: mean accuracy = {0:.2f}%".format(np.mean(mean_accuracy)*100))
 	print("Accuracy results report: ")
 	print(mean_accuracy)
+
+def test(model, test_samples, test_labels):
+	hits = 0
+	for i in range(len(test_samples)):
+		sample = test_samples[i]
+		target = test_labels[i]
+
+		prediction = model.predict(sample)
+		if prediction == target:
+			hits += 1
+	return hits/len(test_samples)
 
 def main():
 	data, labels = Util.read_base('abalone-ACNN96.data')

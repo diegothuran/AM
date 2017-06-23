@@ -1,3 +1,5 @@
+from sklearn.model_selection import StratifiedKFold
+
 import os, csv, time
 import numpy as np
 
@@ -38,15 +40,11 @@ def segment(path=str):
             print(",".join(row))
 
 def stratify(dataset, folds, labels):
-    strata = [[] for f in range(folds)]
-    idx = 0
+    skf = StratifiedKFold(n_splits=folds)
+    strata = []
 
-    if len(dataset) % len(set(labels)) != 0 or (len(dataset)/len(set(labels))) %  folds != 0:
-        raise ValueError('The dataset does not support stratification by the number of folds selected!')
-    else:
-        for sample in dataset:
-            strata[idx].append(sample)
-            idx = (idx + 1) % folds
+    for train, test in skf.split(dataset, labels):
+        strata.append([dataset[i] for i in test])
 
     return strata
 
@@ -88,4 +86,3 @@ def timing(f):
         print('{} function took {} ms'.format(f.__name__, (time2-time1)*1000.0))
         return ret
     return wrap
-
