@@ -8,7 +8,7 @@ import ignore_warnings
 
 def main():
 	results = {}
-	training_samples, training_classes = Util.read_base('abalone-processed.data')
+	training_samples, training_classes = Util.read_base('abalone-ACNN96.data')
 
 	# ==================================================
 	# MLP classifier

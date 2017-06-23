@@ -95,7 +95,7 @@ class MFCMdd:
 
     def initialize_U(self, dataset_len, k=int):
         """
-d
+
             Método responsável por criar a matriz U de pertinência Fuzzy
         :param dataset: matriz de similaridade
         :param k: número de classes
@@ -168,6 +168,7 @@ d
             print("Grupo: " + str(i))
             print(matrix)
             i+=1
+        print(self.J)
         print("Pesos:")
         print(self.weights)
         print("Fuzzy:")

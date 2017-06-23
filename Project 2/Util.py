@@ -88,3 +88,4 @@ def timing(f):
         print('{} function took {} ms'.format(f.__name__, (time2-time1)*1000.0))
         return ret
     return wrap
+
