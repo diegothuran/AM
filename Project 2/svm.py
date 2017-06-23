@@ -1,36 +1,31 @@
-from sklearn.neighbors import KNeighborsClassifier
+from sklearn.svm import SVC
 from sklearn.grid_search import GridSearchCV
 from sklearn.metrics import confusion_matrix
 import numpy as np
 
 import Util
-
-def warn(*args,**kwargs):
-	pass
-import warnings
-warnings.warn = warn
+import ignore_warnings
 
 def main():
 	results = {}
-	training_samples, training_classes = Util.read_base('abalone-ACNN96.data')
+	training_samples, training_classes = Util.read_base('abalone-processed.data')
 
 	# ==================================================
-	# K Nearest Neighbors classifier
+	# Support vector machine classifier
 	# ==================================================
 
-	# KNN parameters
+	# SVM parameters
 	params = {
-	'n_neighbors' : np.array([2,5,10]),
-	'weights' : np.array(["uniform","distance"]),
-	'algorithm' : ["ball_tree","kd_tree","brute"],
-	'leaf_size' : np.array([10,20,30,40])}
+	'C' : np.array([1.0,10.0,100.0]),
+	'kernel' : ["linear","poly","rbf","sigmoid"],
+	'gamma' : np.array([1e-3,1e-4,1e-5])}
 
 	for param in params.keys():
 		print("========================================")
 		print("Testing values for '"+param+"'")
 		print("========================================")
-		classifier = KNeighborsClassifier()
-		grid = GridSearchCV(estimator=classifier, #scoring="accuracy",
+		classifier = SVC()
+		grid = GridSearchCV(estimator=classifier, #verbose=10,
 			param_grid={param:params[param]})
 		grid.fit(training_samples, training_classes)
 		print("> Best score: "+str(grid.best_score_))

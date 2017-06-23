@@ -1,39 +1,34 @@
-from sklearn.tree import DecisionTreeClassifier
+from sklearn.neighbors import KNeighborsClassifier
 from sklearn.grid_search import GridSearchCV
 from sklearn.metrics import confusion_matrix
 import numpy as np
 
 import Util
-
-def warn(*args,**kwargs):
-	pass
-import warnings
-warnings.warn = warn
+import ignore_warnings
 
 def main():
 	results = {}
-	training_samples, training_classes = Util.read_base('abalone-processed.data')
+	training_samples, training_labels = Util.read_base('abalone-ACNN96.data')
 
 	# ==================================================
-	# Decision tree classifier
+	# K Nearest Neighbors classifier
 	# ==================================================
 
-	# Decision tree parameters
+	# KNN parameters
 	params = {
-	'criterion' : ['gini','entropy'],
-	'max_features' : ['auto', 'sqrt', 'log2', None],
-	'min_samples_split' : np.array([2,4,6]),
-	'min_samples_leaf' : np.array([1,2,3])
-	}
+	'n_neighbors' : np.array([2,5,10]),
+	'weights' : np.array(["uniform","distance"]),
+	'algorithm' : ["ball_tree","kd_tree","brute"],
+	'leaf_size' : np.array([10,20,30,40])}
 
 	for param in params.keys():
 		print("========================================")
 		print("Testing values for '"+param+"'")
 		print("========================================")
-		classifier = DecisionTreeClassifier()
-		grid = GridSearchCV(estimator=classifier, #verbose=10,
+		classifier = KNeighborsClassifier()
+		grid = GridSearchCV(estimator=classifier, #scoring="accuracy",
 			param_grid={param:params[param]})
-		grid.fit(training_samples, training_classes)
+		grid.fit(training_samples, training_labels)
 		print("> Best score: "+str(grid.best_score_))
 		print("> Best param: "+str(getattr(grid.best_estimator_,param)))
 		results[param] = str(getattr(grid.best_estimator_,param))

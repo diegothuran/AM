@@ -4,11 +4,7 @@ from sklearn.metrics import confusion_matrix
 import numpy as np
 
 import Util
-
-def warn(*args,**kwargs):
-	pass
-import warnings
-warnings.warn = warn
+import ignore_warnings
 
 def main():
 	results = {}
