@@ -9,8 +9,8 @@ from oversampling import random_oversample
 
 def main():
 	results = {}
-	training_samples, training_classes = Util.read_base('abalone-processed.data')
-	#training_samples, training_classes = random_oversample('abalone-processed.data')
+	#training_samples, training_classes = Util.read_base('abalone-processed.data')
+	training_samples, training_classes = random_oversample('abalone-processed.data')
 	# ==================================================
 	# Support vector machine classifier
 	# ==================================================
