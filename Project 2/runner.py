@@ -13,7 +13,7 @@ import Util
 import ignore_warnings
 
 @timing
-def cross_validation(model, data, labels, folds = 10, times = 30):
+def cross_validation(model, data, labels, folds = 10, times = 1):
 	data_strata = Util.stratify(data, folds, labels)
 	labels_strata = Util.stratify(labels, folds, labels)
 
@@ -27,6 +27,7 @@ def cross_validation(model, data, labels, folds = 10, times = 30):
 			print("Fold "+str(j+1)+" out of "+str(folds))
 			train_set, test_set = Util.split_set(data_strata, j)
 			train_labels, test_labels = Util.split_set(labels_strata, j)
+			train_set, train_labels = random_oversample(train_set, train_labels)
 
 			model.fit(train_set,train_labels)
 
@@ -56,15 +57,15 @@ def test(model, test_samples, test_labels):
 	return hits/len(test_samples)
 
 def main():
-	data, labels = random_oversample('abalone-processed.data')
+	data, labels = Util.read_base('abalone-processed.data')
 	# run(KNeighborsClassifier(n_neighbors=10,weights="uniform",algorithm="ball_tree",leaf_size=10), data, labels)
 	# run(DecisionTreeClassifier(criterion="gini",max_features="log2",min_samples_split=2,min_samples_leaf=3), data, labels)
 	# run(SVC(C=100.0,kernel="linear",gamma=0.001), data, labels)
 	# run(MLPClassifier(), data, labels)
 
-	#cross_validation(KNeighborsClassifier(), data, labels)
-	#cross_validation(DecisionTreeClassifier(), data, labels)
-	#cross_validation(SVC(), data, labels)
+	cross_validation(KNeighborsClassifier(), data, labels)
+	cross_validation(DecisionTreeClassifier(), data, labels)
+	cross_validation(SVC(), data, labels)
 	cross_validation(MLPClassifier(), data, labels)
 
 main()
