@@ -2,6 +2,8 @@ from sklearn.neighbors import KNeighborsClassifier
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.svm import SVC
 from sklearn.neural_network import MLPClassifier
+from sklearn.feature_selection import SelectKBest
+from sklearn.feature_selection import chi2
 from Util import timing
 from oversampling import random_oversample
 import time
@@ -13,7 +15,10 @@ import Util
 import ignore_warnings
 
 @timing
-def cross_validation(model, data, labels, folds = 10, times = 1):
+def cross_validation(model, data, labels, feature_selection=True, oversample=False, folds = 10, times = 1):
+	if feature_selection:
+		data = SelectKBest(chi2, k=2).fit_transform(data, labels)
+
 	data_strata = Util.stratify(data, folds, labels)
 	labels_strata = Util.stratify(labels, folds, labels)
 
@@ -27,7 +32,9 @@ def cross_validation(model, data, labels, folds = 10, times = 1):
 			print("Fold "+str(j+1)+" out of "+str(folds))
 			train_set, test_set = Util.split_set(data_strata, j)
 			train_labels, test_labels = Util.split_set(labels_strata, j)
-			train_set, train_labels = random_oversample(train_set, train_labels)
+
+			if oversample:
+				train_set, train_labels = random_oversample(train_set, train_labels)
 
 			model.fit(train_set,train_labels)
 
