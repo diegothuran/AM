@@ -2,8 +2,8 @@ from imblearn.over_sampling import RandomOverSampler
 import Util
 
 def random_oversample(training_samples, training_labels):
-    ada = RandomOverSampler (random_state=42)
+    ada = RandomOverSampler()
 
-    X_res, y_res = ada.fit_sample(training_samples, training_labels)
+    training_samples, training_labels = ada.fit_sample(training_samples, training_labels)
 
-    return X_res, y_res
+    return training_samples, training_labels
