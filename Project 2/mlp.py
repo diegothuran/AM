@@ -16,9 +16,9 @@ def main():
 	params = {
 	'hidden_layer_sizes' : np.array([(50,),(100,),(200)]),
 	'activation' : np.array(['identity','logistic','tanh','relu']),
-	'solver' : np.array(['lbfgs','sgd','adam']),
-	'alpha' : np.array([0.001,0.0001,0.00001]),
-	'learning_rate' : ['constant','invscaling','adaptive'],
+	#'solver' : np.array(['lbfgs','sgd','adam']),
+	#'alpha' : np.array([0.001,0.0001,0.00001]),
+	#'learning_rate' : ['constant','invscaling','adaptive'],
 	'learning_rate_init' :  np.array([0.01,0.001,0.0001])}
 
 	for param in params.keys():

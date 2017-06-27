@@ -41,4 +41,4 @@ Accuracy results report:
 0.21508480757559462, 0.21725004503822981, 0.21501107837908379, 0.21420642287723077]
 Mean time execution:
 296.332517393
-cross_validation function took 8890098.628520966 ms
+cross_validation function took 8890098,628520966 ms

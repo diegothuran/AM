@@ -15,9 +15,9 @@ import Util
 import ignore_warnings
 
 @timing
-def cross_validation(model, data, labels, feature_selection=True, oversample=False, folds = 10, times = 30):
+def cross_validation(model, data, labels, feature_selection=False, oversample=False, folds = 10, times = 1):
 	if feature_selection:
-		data = SelectKBest(chi2, k=2).fit_transform(data, labels)
+		data = SelectKBest(chi2, k=8).fit_transform(data, labels)
 
 	data_strata = Util.stratify(data, folds, labels)
 	labels_strata = Util.stratify(labels, folds, labels)
@@ -64,15 +64,15 @@ def test(model, test_samples, test_labels):
 	return hits/len(test_samples)
 
 def main():
-	data, labels = Util.read_base('abalone-ACNN96.data')
+	data, labels = Util.read_base('abalone-processed.data')
 	# run(KNeighborsClassifier(n_neighbors=10,weights="uniform",algorithm="ball_tree",leaf_size=10), data, labels)
 	# run(DecisionTreeClassifier(criterion="gini",max_features="log2",min_samples_split=2,min_samples_leaf=3), data, labels)
 	# run(SVC(C=100.0,kernel="linear",gamma=0.001), data, labels)
 	# run(MLPClassifier(), data, labels)
 
-	#cross_validation(KNeighborsClassifier(), data, labels)
+	cross_validation(KNeighborsClassifier(), data, labels)
 	#cross_validation(DecisionTreeClassifier(), data, labels)
 	#cross_validation(SVC(), data, labels)
-	cross_validation(MLPClassifier(), data, labels)
+	cross_validation(MLPClassifier(hidden_layer_sizes=200, solver='lbfgs', alpha=0.5), data, labels)
 
 main()
